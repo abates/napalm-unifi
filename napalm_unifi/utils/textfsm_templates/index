@@ -1,0 +1,18 @@
+# First line is the header fields for columns and is mandatory.
+# Regular expressions are supported in all fields except the first.
+# Last field supports variable length command completion.
+# abc[[xyz]] is expanded to abc(x(y(z)?)?)?, regexp inside [[]] is not supported
+#
+# Rules of Ordering:
+#  - OS in alphabetical order
+#  - Template name in length order (longest to shortest)
+#  - When Length is the same, use alphabetical order
+#  - Keep space between OS's
+#
+Template, Hostname, Platform, Command
+
+
+ubiquiti_unifi_show_lldp_neighbor.textfsm, .*, ubiquiti_unifi, sh[[ow]] ll[[dp]] n[[eighbor]]
+ubiquiti_unifi_show_lldp_remote-device_all.textfsm .*, ubiquiti_unifi, sh[[ow]] ll[[dp]] r[[emote-device]] a[[ll]]
+ubiquiti_unifi_show_lldp_interfaces_neighbor.textfsm, .*, ubiquiti_unifi, sh[[ow]] ll[[dp]] i[[nterfaces]] (?:\S+) n[[eighbor]]
+ubiquiti_unifi_show_lldp_remote-device_detail.textfsm .*, ubiquiti_unifi, sh[[ow]] ll[[dp]] r[[emote-device]] d[[etail]] (?:\d+/\d+)

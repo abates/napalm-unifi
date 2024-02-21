@@ -1,0 +1,37 @@
+Value Required LOCAL_PORT (\S+)
+Value NEIGHBOR_CHASSIS_TYPE (\S+)
+Value NEIGHBOR_CHASSIS_ID ([a-f0-9]{6}-[a-f0-9]{6}|(?:[a-z0-9]{2}\s){5}[a-z0-9]{2}|\S+)
+Value PORT_TYPE (\S+)
+Value NEIGHBOR_PORTID (.+)
+Value NEIGHBOR_SYSNAME (.+)
+Value SYSTEM_DESCR (.+)
+Value PORT_DESCR (\S+)
+Value SYSTEM_CAPABILITIES_SUPPORTED (.+)
+Value SYSTEM_CAPABILITIES_ENABLED (.+)
+Value REMOTE_MANAGEMENT_ADDRESS_TYPE (\S+)
+Value REMOTE_MANAGEMENT_ADDRESS (\S+)
+
+Start
+  ^\s*$$
+  ^\s*LLDP\sRemote\sDevice\sDetail -> LLDP
+  ^. -> Error
+
+LLDP
+  ^\s*Local\s+Interface:\s+${LOCAL_PORT}\s*$$
+  ^\s*Remote\s+Identifier:\s+${NEIGHBOR_PORTID}\s*$$
+  ^\s*Chassis\s+ID\s+Subtype:\s+${NEIGHBOR_CHASSIS_TYPE}\s*$$
+  ^\s*Chassis\s+ID:\s+${NEIGHBOR_CHASSIS_ID}
+  ^\s*Port\s+ID\s+Subtype:\s+${PORT_TYPE}\s*$$
+  ^\s*Port\s+ID:\s+${NEIGHBOR_PORTID}\s*$$
+  ^\s*System\s+Name:\s+${NEIGHBOR_SYSNAME}\s*$$
+  ^\s*System\s+Description:\s+${SYSTEM_DESCR}\s*$$
+  ^\s*Port\s+Description:\s+${PORT_DESCR}\s*$$
+  ^\s*System\s+Capabilities\s+Supported:\s+${SYSTEM_CAPABILITIES_SUPPORTED}\s*$$
+  ^\s*System\s+Capabilities\s+Enabled:\s+${SYSTEM_CAPABILITIES_ENABLED}\s*$$
+  ^\s*Management\s+Address:\s*$$ -> MGMT_ADDRESS
+  ^\s*Time\s+to\s+Live:\s+\d+.*$$
+  ^\s*$$
+
+ MGMT_ADDRESS
+  ^\s+Type:\s+${REMOTE_MANAGEMENT_ADDRESS_TYPE}\s*$$
+  ^\s+Address:\s+${REMOTE_MANAGEMENT_ADDRESS}\s*$$ -> LLDP

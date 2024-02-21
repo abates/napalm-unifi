@@ -4,83 +4,34 @@ Napalm driver for Unifi.
 Read https://napalm.readthedocs.io for more information.
 """
 
-from collections import UserList
+from collections import defaultdict
 import json
-from typing import Any, Dict
-
-from netaddr import IPNetwork
+from os import path
+from typing import Any, Dict, List, Union
 
 from napalm.base import NetworkDriver, models
 from napalm.base.netmiko_helpers import netmiko_args
 
-class UnifiList(UserList):
-    def __setitem__(self, index, value):
-        if index >= len(self):
-            for _ in range(index - len(self) + 1):
-                self.append(UnifiConfig())
-        return super().__setitem__(index, value)
+import ntc_templates
+from textfsm import clitable
+
+template_dir = path.abspath(path.join(path.dirname(__file__), "utils", "textfsm_templates"))
+local_cli_table = clitable.CliTable("index", template_dir)
+
+template_dir = path.join(path.dirname(ntc_templates.__file__), "templates")
+ntc_cli_table = clitable.CliTable("index", template_dir)
 
 
-class UnifiConfig(UserList):
-    def __init__(self, config=None):
-        super().__init__()
-        if config is not None:
-            for line in config.split("\n"):
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    key, value = line.split("=")
-                    self.set(key, value)
-
-    def __setitem__(self, index, value):
-        if index >= len(self):
-            for _ in range(index - len(self) + 1):
-                self.append(UnifiConfig())
-        return super().__setitem__(index, value)
-
-    def set(self, path, value):
-        item = self
-        path = path.split(".")
-        for key in path[0:-1]:
-            try:
-                key = int(key)
-                try:
-                    item = item[key - 1]
-                except IndexError:
-                    item[key - 1] = UnifiConfig()
-                    item = item[key - 1]
-            except ValueError:
-                try:
-                    item = getattr(item, key)
-                except AttributeError:
-                    newitem = UnifiConfig()
-                    setattr(item, key, newitem)
-                    item = newitem
-        setattr(item, path[-1], value)
-
-    def get(self, path, default_value=None):
-        item = self
-        try:
-            for key in path.split("."):
-                try:
-                    key = int(key)
-                    item = item[key - 1]
-                    if item is None:
-                        raise KeyError(str(key))
-                except ValueError:
-                    item = getattr(item, key)
-        except AttributeError:
-            return default_value
-        return item
-
-
-    def to_json(self, **dumps_options):
-        return json.dumps(self, cls=UnifiJSONEncoder, **dumps_options)
-
-class UnifiJSONEncoder(json.JSONEncoder):
-    def default(self, o: Any) -> Any:
-        if isinstance(o, (UnifiList, UnifiConfig)):
-            return o.data
-        return super().default(o)
+def map_textfsm_template(command: str, platform = "ubiquiti_unifi"):
+    for table in [local_cli_table, ntc_cli_table]:
+        row_idx = table.index.GetRowMatch({
+            "Platform": platform,
+            "Command": command,
+        })
+        if row_idx:
+            return path.join(table.template_dir, table.index.index[row_idx]['Template'])
+    
+    return None
 
 
 class UnifiBaseDriver(NetworkDriver):
@@ -100,9 +51,13 @@ class UnifiBaseDriver(NetworkDriver):
                 "allowed_types": ["password"],
             }
         self.netmiko_optional_args = netmiko_args(optional_args)
-
-        self._config: models.ConfigDict = None
+        self._config: dict = {
+            "candidate": None,
+            "running": None,
+            "startup": None,
+        }
         self._mca: dict = None
+        self.cli_table = clitable.CliTable()
 
     def open(self):
         """Implement the NAPALM method open (mandatory)"""
@@ -116,43 +71,30 @@ class UnifiBaseDriver(NetworkDriver):
         self._netmiko_close()
 
     def _get_config(self, retrieve: str = "all", full: bool = False, sanitized: bool = False, use_previous: bool = False) -> models.ConfigDict:
-        if use_previous and self._config is not None:
-            return self._config
-
-        self._config = {
-            "candidate": None,
-            "running": None,
-            "startup": None,
-        }
+        if use_previous:
+            if retrieve == "all" and self._config["candidate"] and self._config["running"] and self._config["startup"]:
+                return self._config
+            elif self._config[retrieve]:
+                return self._config
 
         if retrieve == "all" or retrieve == "running":
-            self._config["running"] = self._netmiko_device.send_command("cat /tmp/running.cfg")
+            self._config["running"] = self._read_file("/tmp/running.cfg")
 
         if retrieve == "all" or retrieve == "startup":
-            self._config["startup"] = self._netmiko_device.send_command("cat /tmp/system.cfg")
+            self._config["startup"] = self._read_file("/tmp/system.cfg")
 
         return self._config
 
     def get_config(self, retrieve: str = "all", full: bool = False, sanitized: bool = False) -> models.ConfigDict:
         return self._get_config(retrieve, full, sanitized)
 
-    def _get_mca(self, use_previous=False):
-        if use_previous and self._mca is not None:
-            return self._mca
-        self._mca = json.loads(self._netmiko_device.send_command("mca-dump"))
-        return self._mca
-
-    def get_mca(self) -> dict:
-        return json.loads(self._netmiko_device.send_command("mca-dump"))
-
-
     def get_facts(self) -> models.FactsDict:
-       mca = self._get_mca(use_previous=True)
+       mca = json.loads(self._netmiko_device.send_command("mca-dump"))
 
        return {
            "fqdn": "",
            "hostname": mca["hostname"],
-           "interface_list": sorted(self.get_interfaces().keys()),
+           "interface_list": list(self.get_interfaces().keys()),
            "model": mca["model"],
            "model_display": mca["model_display"],
            "os_version": mca["version"],
@@ -161,26 +103,195 @@ class UnifiBaseDriver(NetworkDriver):
            "vendor": "Ubiquiti Inc.",
        }
 
-    def get_interfaces_ip(self) -> Dict[str, models.InterfacesIPDict]:
-        ips: Dict[str, models.InterfacesIPDict] = {}
-        mca = self._get_mca(True)
-        for interface in mca["if_table"]:
-            ips[interface["name"]] = {
-                "ipv4": {},
-                "ipv6": {},
-            }
-            ip = IPNetwork(f"{interface['ip']}/{interface['netmask']}")
-            ips[interface["name"]]["ipv4"][str(ip.ip)] = {
-                "prefix_length": ip.prefixlen,
-            }
+    def _read_file(self, file_path):
+        return self.send_command(f"cat {file_path}")
 
-        return ips
+    def send_command(self, command: str):
+        textfsm_template = map_textfsm_template(command, platform="linux")
+
+        return self._netmiko_device.send_command(
+            command,
+            use_textfsm=(textfsm_template is not None),
+            textfsm_template=textfsm_template,
+        )
+
+    def is_physical_interface(self, interface_name) -> bool:
+        output = self.send_command(f"readlink -f /sys/class/net/{interface_name}")
+        return not output.startswith("/sys/devices/virtual")
+
+    def get_interface_ipv4(self, interface_name):
+        interface = self.get_interfaces_ip()[interface_name]
+        ip, data = next(iter(interface["ipv4"].items()))
+        return (interface_name, f"{ip}/{data['prefix_length']}")
+
+    def get_primary_ipv4(self):
+        return self.get_interface_ipv4("eth0")
+
+    def get_interfaces_ip(self) -> Dict[str, models.InterfacesIPDict]:
+        interfaces: Dict[str, models.InterfacesIPDict] = {}
+        output = self.send_command("ip address show")
+        for record in output:
+            interface_name = record["interface"]
+            interfaces.setdefault(interface_name, {
+                "ipv4": {},
+                "ipv6": {}
+            })
+            for i, ip_address in enumerate(record["ip_addresses"]):
+                interfaces[interface_name]["ipv4"][ip_address] = {
+                    "prefix_length": int(record["ip_masks"][i])
+                }
+            for i, ip_address in enumerate(record["ipv6_addresses"]):
+                interfaces[interface_name]["ipv6"][ip_address] = {
+                    "prefix_length": int(record["ipv6_masks"][i])
+                }
+        return interfaces
+
+    def get_interfaces(self) -> Dict[str, models.InterfaceDict]:
+        interfaces: Dict[str, models.InterfaceDict] = {}
+        output = self.send_command("ip link show")
+        for record in output:
+            interface_name = record["interface"]
+            if "@" in interface_name:
+                interface_name = interface_name[:interface_name.find("@")]
+            flags = set(record["flags"].split(","))
+            interfaces[interface_name] = {
+                "alias": record["alias"],
+                "description": interface_name,
+                "is_enabled": "UP" in flags,
+                "is_up": "UP" in flags,
+                "last_flapped": float(-1),
+                "mac_address": record["mac_address"],
+                "mtu": record["mtu"],
+                "speed": float(-1),
+                "type": "virtual" if self.is_physical_interface(interface_name) else record["type"],
+            }
+            if interfaces[interface_name]["type"] != "virtual":
+                try:
+                    device_path = f"/sys/class/net/{interface_name}"
+                    interfaces[interface_name]["speed"] = float(self._read_file(f"{device_path}/speed"))
+                except ValueError:
+                    """Ignore bad speed parsing."""
+        return interfaces
 
 
 class UnifiConfigMixin:
-    def get_parsed_config(self, retrieve: str = "all", full: bool = False, sanitized: bool = False, use_previous=False):
-        config = self._get_config(retrieve, full, sanitized, use_previous)
-        for desc, output in config.items():
-            config[desc] = UnifiConfig(output)
-        return config
+    def get_config_section(self, prefix: str, trim=False, group=True) -> list[str]:
+        if group:
+            section = {}
+        else:
+            section = []
+        config = self._get_config("running", use_previous=True)
+        for line in config.splitlines():
+            if line.startswith(prefix):
+                if trim:
+                    line = line.removeprefix(prefix)
+                
+                if group:
+                    keys, value = line.split("=")
+                    keys = keys.split(".")
+                    node = section
+                    for key in keys[0:-1]:
+                        node.setdefault(key, {})
+                        node = node[key]
+                    node[keys[-1]] = value
+                else:
+                    section.append(line)
+        return section
 
+    def get_config_value(self, key: str) -> str:
+        config = self._get_config("running", use_previous=True)
+        for line in config.splitlines():
+            line_key, value = line.split("=")
+            if line_key == key:
+                return value
+        raise KeyError(key)
+
+
+class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
+    def cli(self, commands: List[str], use_texfsm = False) -> Dict[str, Union[str, Dict[str, Any]]]:
+        old_prompt = self._netmiko_device.base_prompt
+        self._netmiko_device.set_base_prompt(pattern="(UBNT) ")
+        self._netmiko_device.send_command("cli")
+        self._netmiko_device.send_command("enable")
+        output = {}
+        for command in commands:
+            self.cli_table.ParseCmd
+            textfsm_template = None
+            if use_texfsm:
+                textfsm_template = map_textfsm_template(command)
+
+            output[command] = self._netmiko_device.send_command(
+                command,
+                use_textfsm=(textfsm_template is not None),
+                textfsm_template=textfsm_template,
+            )
+        self._netmiko_device.send_command("exit")
+        self._netmiko_device.send_command("exit")
+        self._netmiko_device.prompt = old_prompt
+        return output
+
+    def _get_lldp_neighbors_detail(self, interface) -> Dict:
+        raise NotImplementedError("_get_lldp_neighbors_detail may be implemented by sub-classes")
+
+    def get_lldp_neighbors_detail(self, interface: str = "") -> Dict[str, List[models.LLDPNeighborDetailDict]]:
+        neighbors: Dict[str, List[models.LLDPNeighborDetailDict]] = defaultdict(list)
+        interfaces = []
+        if interface == "":
+            interfaces = self.get_interfaces().values()
+        else:
+            interfaces = [interface]
+
+        for interface in interfaces:
+            output = self._get_lldp_neighbors_detail(interface)
+            for neighbor in output:
+                neighbors[interface].append({
+                    "parent_interface": "",
+                    "remote_chassis_id": neighbor["neighbor_chassis_id"],
+                    "remote_port": neighbor["neighbor_portid"],
+                    "remote_port_description": neighbor["port_descr"],
+                    "remote_system_capab": neighbor["system_capabilities_supported"],
+                    "remote_system_description": neighbor["system_descr"],
+                    "remote_system_enable_capab": neighbor["system_capabilities_enabled"],
+                    "remote_system_name": neighbor["neighbor_sysname"],
+                })
+
+    def _get_lldp_neighbors(self) -> Dict:
+        raise NotImplementedError("_get_lldp_neighbors may be implemented by sub-classes")
+
+    def get_lldp_neighbors(self) -> Dict[str, List[models.LLDPNeighborDict]]:
+        neighbors: Dict[str, List[models.LLDPNeighborDict]] = defaultdict(list)
+        output = self._get_lldp_neighbors()
+        for neighbor in output:
+            neighbors[neighbor["local_port"]].append(
+                {
+                    "hostname": neighbor["system_name"],
+                    "port": neighbor["remote_port"],
+                },
+            )
+        return neighbors
+
+    def get_interfaces(self) -> Dict[str, models.InterfaceDict]:
+        interfaces = super().get_interfaces()
+        mtu = 1500
+        mca = json.loads(self._netmiko_device.send_command("mca-dump"))
+
+        if self.get_config_value("switch.jumboframes") == "enabled":
+            mtu = int(self.get_config_value("switch.mtu"))
+
+        for port, details in self.get_config_section("switch.port", group=True, trim=True).items():
+            status = mca["port_table"][int(port)-1]
+            enabled = True
+            if details.get("status") == "disabled":
+                enabled = False
+            interfaces[port] = {
+                "description": details["name"],
+                "is_enabled": enabled,
+                "is_up": status["up"],
+                "last_flapped": float(-1),
+                "mac_address": None,
+                "mtu": mtu,
+                "speed": float(status["speed"]),
+                "type": "ether",
+                "alias": "",
+            }
+        return interfaces

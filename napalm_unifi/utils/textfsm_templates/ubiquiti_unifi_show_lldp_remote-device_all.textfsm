@@ -1,0 +1,8 @@
+Value Required LOCAL_PORT (\d+\/\d+)
+Value Required REMOTE_ID (\d+)
+Value Required CHASSIS_ID (\S+)
+Value Required REMOTE_PORT (.{20})
+Value Required SYSTEM_NAME (\S+)
+
+Start
+  ${LOCAL_PORT}\s+${REMOTE_ID}\s+${CHASSIS_ID}\s+${REMOTE_PORT}${SYSTEM_NAME}$ -> Record
