@@ -1,8 +1,5 @@
-from collections import defaultdict
 import json
-from typing import Dict, List
 
-from napalm.base import models
 
 
 from .unifi import LLDPCliMixin, UnifiSwitchBase as _SwitchBase

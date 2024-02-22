@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "napalm-unifi"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 authors = ["Andrew Bates <andrew.bates@networktocode.com>"]
 license = "Apache 2.0"
@@ -15,6 +15,7 @@ napalm = "^4.1.0"
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.0"
 pytest = "^7.4.3"
+ruff = "^0.2.2"
 
 [build-system]
 requires = ["poetry-core"]
