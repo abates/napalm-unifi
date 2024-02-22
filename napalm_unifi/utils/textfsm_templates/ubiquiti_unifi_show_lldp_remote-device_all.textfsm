@@ -1,8 +1,20 @@
 Value Required LOCAL_PORT (\d+\/\d+)
 Value Required REMOTE_ID (\d+)
 Value Required CHASSIS_ID (\S+)
-Value Required REMOTE_PORT (.{20})
+Value Required REMOTE_PORT (.+?)
 Value Required SYSTEM_NAME (\S+)
 
 Start
-  ${LOCAL_PORT}\s+${REMOTE_ID}\s+${CHASSIS_ID}\s+${REMOTE_PORT}${SYSTEM_NAME}$ -> Record
+  ^\s*LLDP\s+Remote\s+Device\s+Summary\s*$$
+  ^\s*$$
+  ^\s*Local\s*$$ -> Header
+
+Header
+  ^\s*Interface\s+RemID\s+Chassis\s+ID\s+Port\s+ID\s+System\s+Name\s*$$
+  ^\s*-+\s+-+\s+-+\s+-+\s+-+\s*$$ -> Lines
+
+Lines
+  ^\s*${LOCAL_PORT}\s*$$ -> Clearall
+  ^\s*${LOCAL_PORT}\s+${REMOTE_ID}\s+${CHASSIS_ID}\s+${REMOTE_PORT}\s+${SYSTEM_NAME}$$ -> Record
+  ^\s*$$ -> EOF
+  ^.*$$ -> Error

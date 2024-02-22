@@ -1,0 +1,7 @@
+
+ Port |   Device ID       |     Port ID      |      SysName      |  Capabilities  |  TTL 
+ ---- + ----------------- + ---------------- + ----------------- + -------------- + -----
+  gi1 | c2:a1:27:4f:f0:08 |          Port 22 |               sw1 |         Bridge |   104
+  gi2 | f1:6d:f7:22:e7:07 |f1:6d:f7:22:e7:07 |               sw2 |                |   107
+  gi3 | 41:47:50:ae:19:d9 |           Port 1 |               sw3 |         Bridge |   114
+  gi5 |        172.16.1.1 |82:a7:9d:75:cb:36 |Polycom SoundPoint IP 550 |      Telephone |   118

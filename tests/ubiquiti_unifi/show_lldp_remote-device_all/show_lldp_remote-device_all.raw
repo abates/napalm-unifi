@@ -1,0 +1,13 @@
+LLDP Remote Device Summary
+
+Local
+Interface  RemID   Chassis ID            Port ID             System Name
+--------- -------  --------------------  ------------------  ------------------
+0/1
+0/2
+0/3
+0/4
+0/5        8       98:f9:3e:a1:30:bf     Port 24             sw1
+0/6
+0/7        3       ae:26:24:c3:53:76     ae:26:24:c3:53:76   wap1
+0/8        2       76:40:cf:e0:5b:91     76:40:cf:e0:5b:91   wap2

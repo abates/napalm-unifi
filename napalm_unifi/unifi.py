@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Union
 
 from napalm.base import NetworkDriver, models
 from napalm.base.netmiko_helpers import netmiko_args
+from netmiko.exceptions import ReadTimeout
 
 import ntc_templates
 from textfsm import clitable
@@ -180,12 +181,13 @@ class UnifiConfigMixin:
             section = {}
         else:
             section = []
-        config = self._get_config("running", use_previous=True)
+        config: str = self._get_config("running", use_previous=True)["running"]
         for line in config.splitlines():
             if line.startswith(prefix):
                 if trim:
                     line = line.removeprefix(prefix)
-                
+                if line.startswith("."):
+                    line = line.removeprefix(".")
                 if group:
                     keys, value = line.split("=")
                     keys = keys.split(".")
@@ -199,35 +201,69 @@ class UnifiConfigMixin:
         return section
 
     def get_config_value(self, key: str) -> str:
-        config = self._get_config("running", use_previous=True)
+        config: str = self._get_config("running", use_previous=True)["running"]
         for line in config.splitlines():
+            if line.strip().startswith("#"):
+                continue
             line_key, value = line.split("=")
             if line_key == key:
                 return value
         raise KeyError(key)
 
 
+class LLDPCliMixin:
+    def get_lldp_neighbors_detail(self, interface: str = "") -> Dict[str, List[models.LLDPNeighborDetailDict]]:
+        output = self.lldp_show_neighbors()
+        neighbors: Dict[str, List[models.LLDPNeighborDetailDict]] = defaultdict(list)
+
+        for details in output["lldp"][0]["interface"]:
+            neighbors[details["name"]].append({
+                "parent_interface": "",
+                "remote_chassis_id": details["chassis"][0]["id"][0]["value"],
+                "remote_port": details["port"][0]["id"][0]["value"],
+                "remote_port_description": details["port"][0]["descr"][0]["value"],
+                "remote_system_capab": [cap["type"] for cap in details["chassis"][0]["capability"]],
+                "remote_system_description": details["chassis"][0]["descr"][0]["value"],
+                "remote_system_enable_capab": [cap["type"] for cap in details["chassis"][0]["capability"] if cap["enabled"]],
+                "remote_system_name": details["chassis"][0]["name"][0]["value"],
+            })
+        if interface == "":
+            return neighbors
+        return {interface: neighbors.get(interface, None)}
+
+    def get_lldp_neighbors(self) -> Dict[str, List[models.LLDPNeighborDict]]:
+        neighbors: Dict[str, List[models.LLDPNeighborDict]] = defaultdict(list)
+        for local_port, neighbors_detail in self.get_lldp_neighbors_detail().items():
+            for neighbor in neighbors_detail:
+                neighbors[local_port].append(
+                    {
+                        "hostname": neighbor["remote_system_name"],
+                        "port": neighbor["remote_port"],
+                    },
+                )
+        return neighbors
+
+
 class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
     def cli(self, commands: List[str], use_texfsm = False) -> Dict[str, Union[str, Dict[str, Any]]]:
-        old_prompt = self._netmiko_device.base_prompt
-        self._netmiko_device.set_base_prompt(pattern="(UBNT) ")
-        self._netmiko_device.send_command("cli")
-        self._netmiko_device.send_command("enable")
+        self._netmiko_device.send_command("cli", expect_string=r"[^#>]+\s*[#>]")
+        try:
+            self._netmiko_device.send_command("enable", expect_string=r"[\$\#\>]")
+        except ReadTimeout as ex:
+            raise Exception(self._netmiko_device.session_log) from ex
+
         output = {}
         for command in commands:
-            self.cli_table.ParseCmd
             textfsm_template = None
             if use_texfsm:
                 textfsm_template = map_textfsm_template(command)
-
             output[command] = self._netmiko_device.send_command(
                 command,
                 use_textfsm=(textfsm_template is not None),
                 textfsm_template=textfsm_template,
             )
-        self._netmiko_device.send_command("exit")
-        self._netmiko_device.send_command("exit")
-        self._netmiko_device.prompt = old_prompt
+        self._netmiko_device.send_command("exit", expect_string=r"[^#>]+\s*[#>]")
+        self._netmiko_device.send_command("exit", expect_string=r"[^#>]+\s*[#>]")
         return output
 
     def _get_lldp_neighbors_detail(self, interface) -> Dict:

@@ -1,0 +1,17 @@
+---
+parsed_sample:
+  - local_port: "0/5"
+    chassis_id: "98:f9:3e:a1:30:bf"
+    remote_id: "8"
+    remote_port: "Port 24"
+    system_name: "sw1"
+  - local_port: "0/7"
+    chassis_id: "ae:26:24:c3:53:76"
+    remote_id: "3"
+    remote_port: "ae:26:24:c3:53:76"
+    system_name: "wap1"
+  - local_port: "0/8"
+    chassis_id: "76:40:cf:e0:5b:91"
+    remote_id: "2"
+    remote_port: "76:40:cf:e0:5b:91"
+    system_name: "wap2"
