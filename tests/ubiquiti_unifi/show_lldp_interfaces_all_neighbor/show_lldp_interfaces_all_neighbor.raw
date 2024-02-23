@@ -1,0 +1,15 @@
+
+Device ID: 31:25:15:06:b6:8c
+Port ID: Port 22
+System Name: sw1
+Capabilities: Bridge
+System description: US-24-G1, 6.6.61.15179, Linux 3.6.5
+Port description: Port 22
+Time To Live: 98
+802.3 MAC/PHY Configur/Status
+Auto-negotiation support: Supported
+Auto-negotiation status: Enabled
+Auto-negotiation Advertised Capabilities: 1000BASE-T full duplex
+Operational MAU type: Other or unknown
+LLDP-MED capabilities: Capabilities, Network Policy, Extended PSE
+LLDP-MED Device type: Network Connectivity

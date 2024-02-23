@@ -1,0 +1,8 @@
+---
+parsed_sample:
+  - neighbor_chassis_id: "f3:87:6a:c1:1d:2d"
+    neighbor_portid: "f3:87:6a:c1:1d:2d"
+    neighbor_sysname: "sw1"
+    system_descr: "USMINI - 5 GE, 2.0.0.704"  
+    system_capabilities_enabled: ""
+    port_descr: ""

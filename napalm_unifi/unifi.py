@@ -273,7 +273,7 @@ class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
         neighbors: Dict[str, List[models.LLDPNeighborDetailDict]] = defaultdict(list)
         interfaces = []
         if interface == "":
-            interfaces = self.get_interfaces().values()
+            interfaces = self.get_lldp_neighbors().keys()
         else:
             interfaces = [interface]
 
@@ -290,11 +290,12 @@ class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
                     "remote_chassis_id": neighbor["neighbor_chassis_id"],
                     "remote_port": neighbor["neighbor_portid"],
                     "remote_port_description": neighbor["port_descr"],
-                    "remote_system_capab": neighbor["system_capabilities_supported"],
+                    "remote_system_capab": neighbor.get("system_capabilities_supported", []),
                     "remote_system_description": neighbor["system_descr"],
                     "remote_system_enable_capab": neighbor["system_capabilities_enabled"],
                     "remote_system_name": neighbor["neighbor_sysname"],
                 })
+        return neighbors
 
     def _get_lldp_neighbors(self) -> Dict:
         raise NotImplementedError("_get_lldp_neighbors may be implemented by sub-classes")
@@ -315,8 +316,8 @@ class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
             )
         return neighbors
 
-    def get_interfaces(self) -> Dict[str, models.InterfaceDict]:
-        interfaces = super().get_interfaces()
+    def get_ports(self) -> Dict[str, models.InterfaceDict]:
+        ports: Dict[str, models.InterfaceDict] = {}
         mtu = 1500
         mca = json.loads(self._netmiko_device.send_command("mca-dump"))
 
@@ -328,7 +329,7 @@ class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
             enabled = True
             if details.get("status") == "disabled":
                 enabled = False
-            interfaces[port] = {
+            ports[port] = {
                 "description": details["name"],
                 "is_enabled": enabled,
                 "is_up": status["up"],
@@ -339,4 +340,9 @@ class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
                 "type": "ether",
                 "alias": "",
             }
+        return ports
+
+    def get_interfaces(self) -> Dict[str, models.InterfaceDict]:
+        interfaces = super().get_interfaces()
+        interfaces.update(self.get_ports())
         return interfaces

@@ -28,10 +28,8 @@ LLDP
   ^\s*Port\s+Description:\s+${PORT_DESCR}\s*$$
   ^\s*System\s+Capabilities\s+Supported:\s+${SYSTEM_CAPABILITIES_SUPPORTED}\s*$$
   ^\s*System\s+Capabilities\s+Enabled:\s+${SYSTEM_CAPABILITIES_ENABLED}\s*$$
-  ^\s*Management\s+Address:\s*$$ -> MGMT_ADDRESS
+  ^\s*Management\s+Address:\s*$$
+  ^\s+Type:\s+${REMOTE_MANAGEMENT_ADDRESS_TYPE}\s*$$
+  ^\s+Address:\s+${REMOTE_MANAGEMENT_ADDRESS}\s*$$
   ^\s*Time\s+to\s+Live:\s+\d+.*$$
   ^\s*$$
-
- MGMT_ADDRESS
-  ^\s+Type:\s+${REMOTE_MANAGEMENT_ADDRESS_TYPE}\s*$$
-  ^\s+Address:\s+${REMOTE_MANAGEMENT_ADDRESS}\s*$$ -> LLDP

@@ -1,0 +1,8 @@
+---
+parsed_sample:
+  - neighbor_chassis_id: "4f:d0:8d:d8:37:aa"
+    neighbor_portid: "Port 1"
+    neighbor_sysname: "sw1"
+    system_descr: "US-8-60W, 6.6.61.15179, Linux 3.6.5"  
+    system_capabilities_enabled: "Bridge"
+    port_descr: "Port 1"

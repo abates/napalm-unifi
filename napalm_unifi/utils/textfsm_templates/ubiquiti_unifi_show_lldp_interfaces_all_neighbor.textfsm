@@ -1,25 +1,27 @@
-Value NEIGHBOR_CHASSIS_TYPE (\S+)
 Value NEIGHBOR_CHASSIS_ID ([a-f0-9]{6}-[a-f0-9]{6}|(?:[a-z0-9]{2}\s){5}[a-z0-9]{2}|\S+)
-Value PORT_TYPE (\S+)
-Value NEIGHBOR_PORTID (.+)
-Value NEIGHBOR_SYSNAME (.+)
-Value SYSTEM_DESCR (.+)
-Value PORT_DESCR (\S+)
-Value SYSTEM_CAPABILITIES_SUPPORTED (.+)
-Value SYSTEM_CAPABILITIES_ENABLED (.+)
-Value REMOTE_MANAGEMENT_ADDRESS_TYPE (\S+)
-Value REMOTE_MANAGEMENT_ADDRESS (\S+)
+Value NEIGHBOR_PORTID (.+?)
+Value NEIGHBOR_SYSNAME (.+?)
+Value SYSTEM_DESCR (.+?)
+Value PORT_DESCR (.*?)
+Value SYSTEM_CAPABILITIES_ENABLED (.*?)
 
 Start
-  ^\s*Device\s+ID:\s+${NEIGHBOR_CHASSIS_ID}
+  ^\s*$$ -> Block
+
+Block
+  ^\s*Device\s+ID:\s+${NEIGHBOR_CHASSIS_ID}\s*$$
   ^\s*Port\s+ID:\s+${NEIGHBOR_PORTID}\s*$$
   ^\s*System\s+Name:\s+${NEIGHBOR_SYSNAME}\s*$$
   ^\s*Capabilities:\s+${SYSTEM_CAPABILITIES_ENABLED}\s*$$
   ^\s*System\s+description:\s+${SYSTEM_DESCR}\s*$$
   ^\s*Port\s+description:\s+${PORT_DESCR}\s*$$
   ^\s*Time\s+To\s+Live:\s+\d+.*$$
-  ^\s*802.3\s+MAC/PHY\s+Configur/Status -> MAC_PHY
+  ^\s*802.3\s+MAC/PHY\s+Configur/Status\s*$$
   ^\s*Auto-negotiation support:
   ^\s*Auto-negotiation status:
   ^\s*Auto-negotiation Advertised Capabilities:
   ^\s*Operational MAU type:
+  ^\s*LLDP-MED capabilities:
+  ^\s*LLDP-MED Device type:
+  ^\s*$$ -> Record EOF
+  ^.*$$ -> Error

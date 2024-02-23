@@ -1,0 +1,8 @@
+---
+parsed_sample:
+  - neighbor_chassis_id: "31:25:15:06:b6:8c"
+    neighbor_portid: "Port 22"
+    neighbor_sysname: "sw1"
+    system_descr: "US-24-G1, 6.6.61.15179, Linux 3.6.5"  
+    system_capabilities_enabled: "Bridge"
+    port_descr: "Port 22"
