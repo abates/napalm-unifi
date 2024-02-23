@@ -1,0 +1,8 @@
+---
+parsed_sample:
+  - neighbor_chassis_id: "172.16.1.85"
+    neighbor_portid: "5d:08:da:c8:64:be"
+    neighbor_sysname: "Polycom SoundPoint IP 550"
+    system_descr: "Polycom;SoundPointIP-SPIP_550;2345-12500-001,1;SIP/4.1.0.84959/22-Mar-13 14:24;UP/5.0.2.12692/08-Mar-12 09:39;"
+    system_capabilities_enabled: "Telephone"
+    port_descr: "1"

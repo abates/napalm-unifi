@@ -69,6 +69,10 @@ class UnifiBaseDriver(NetworkDriver):
 
     def close(self):
         """Implement the NAPALM method close (mandatory)"""
+        # self._netmiko_device.send_command(
+        #     "exit",
+        #     cmd_verify=False,
+        # )
         self._netmiko_close()
 
     def _get_config(self, retrieve: str = "all", full: bool = False, sanitized: bool = False, use_previous: bool = False) -> models.ConfigDict:
@@ -244,14 +248,21 @@ class LLDPCliMixin:
         return neighbors
 
 
-class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
-    def cli(self, commands: List[str], use_texfsm = False) -> Dict[str, Union[str, Dict[str, Any]]]:
-        self._netmiko_device.send_command("cli", expect_string=r"[^#>]+\s*[#>]")
-        try:
-            self._netmiko_device.send_command("enable", expect_string=r"[\$\#\>]")
-        except ReadTimeout as ex:
-            raise Exception(self._netmiko_device.session_log) from ex
+class NoEnableMixin:
+    def open(self):
+        super().open()
+        self._netmiko_device.check_enable_mode = self.check_enable_mode
 
+    def check_enable_mode(self, *args, **kwargs):
+        return False
+
+
+class UnifiSwitchBase(NoEnableMixin, UnifiConfigMixin, UnifiBaseDriver):
+
+    def cli(self, commands: List[str], use_texfsm = False) -> Dict[str, Union[str, Dict[str, Any]]]:
+        self._netmiko_device.send_command("cli", expect_string=r"[^\#\>]+\s*[\#\>]")
+        self._netmiko_device.send_command("enable", expect_string=r"[\$\#\>]\s*$")
+        self._netmiko_device.send_command("terminal length 0", expect_string=r"[\$\#\>]\s*$")
         output = {}
         for command in commands:
             textfsm_template = None
@@ -261,9 +272,10 @@ class UnifiSwitchBase(UnifiConfigMixin, UnifiBaseDriver):
                 command,
                 use_textfsm=(textfsm_template is not None),
                 textfsm_template=textfsm_template,
+                expect_string=r"[\$\#\>]",
             )
-        self._netmiko_device.send_command("exit", expect_string=r"[^#>]+\s*[#>]")
-        self._netmiko_device.send_command("exit", expect_string=r"[^#>]+\s*[#>]")
+        self._netmiko_device.send_command("exit", expect_string=r"[^\#\>]+\s*[\#\>]")
+        self._netmiko_device.send_command("exit", expect_string=r"[^\#\>]+\s*[\#\>]")
         return output
 
     def _get_lldp_neighbors_detail(self, interface) -> Dict:

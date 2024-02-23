@@ -8,14 +8,6 @@ from .unifi import LLDPCliMixin, UnifiBaseDriver as _Base
 from napalm.base import models
 
 class UnifiSecurityGatewayDriver(LLDPCliMixin, _Base):
-    def open(self):
-        super().open()
-        self._netmiko_device.enable(cmd="sudo su -")
-
-    def close(self):
-        self._netmiko_device.exit_enable_mode()
-        super().close()
-
     def get_primary_ipv4(self):
         for interface_name, interface in self.get_interfaces().items():
             if interface["alias"] == "LAN":

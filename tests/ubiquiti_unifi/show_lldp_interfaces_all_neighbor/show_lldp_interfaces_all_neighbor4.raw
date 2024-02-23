@@ -1,0 +1,40 @@
+
+Device ID: 172.16.1.85
+Port ID: 5d:08:da:c8:64:be
+System Name: Polycom SoundPoint IP 550
+Capabilities: Telephone
+System description: Polycom;SoundPointIP-SPIP_550;2345-12500-001,1;SIP/4.1.0.84959/22-Mar-13 14:24;UP/5.0.2.12692/08-Mar-12 09:39;
+Port description: 1
+Management address: 172.16.1.85
+Time To Live: 101
+802.3 MAC/PHY Configur/Status
+Auto-negotiation support: Supported
+Auto-negotiation status: Enabled
+Auto-negotiation Advertised Capabilities: 10BASE-T  half duplex, 10BASE-T  full duplex, 100BASE-TX half duplex, 100BASE-TX full duplex
+Operational MAU type: 10BASE-T  full duplex mode
+LLDP-MED capabilities: Capabilities, Network Policy, Extended PD, Inventory
+LLDP-MED Device type: Endpoint Class 3
+LLDP-MED Network policy
+Application type: Voice
+Flags: Defined
+VLAN ID: 10
+Layer 2 priority: 5
+DSCP: 46
+LLDP-MED Network policy
+Application type: Voice Signaling
+Flags: Defined
+VLAN ID: 10
+Layer 2 priority: 5
+DSCP: 44
+LLDP-MED Power over Ethernet
+Device Type: Power Device
+Power Source: PSE and Local
+Power priority: Unknown
+Power value: 5.9 Watts
+Hardware revision: 2345-12500-001,1
+Firmware revision: UP/5.0.2.12692/08-Mar-12 09:39
+Software revision: SIP/4.1.0.84959/22-Mar-13 14:24
+Serial number: 5d08dac864be
+Manufacturer Name: Polycom
+Model name: SoundPointIP-SPIP_550
+Asset ID: 

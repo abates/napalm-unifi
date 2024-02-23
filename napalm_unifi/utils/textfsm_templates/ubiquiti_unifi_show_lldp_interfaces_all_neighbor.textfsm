@@ -7,6 +7,7 @@ Value SYSTEM_CAPABILITIES_ENABLED (.*?)
 
 Start
   ^\s*$$ -> Block
+  ^.*$$ -> Error
 
 Block
   ^\s*Device\s+ID:\s+${NEIGHBOR_CHASSIS_ID}\s*$$
@@ -17,11 +18,35 @@ Block
   ^\s*Port\s+description:\s+${PORT_DESCR}\s*$$
   ^\s*Time\s+To\s+Live:\s+\d+.*$$
   ^\s*802.3\s+MAC/PHY\s+Configur/Status\s*$$
-  ^\s*Auto-negotiation support:
-  ^\s*Auto-negotiation status:
-  ^\s*Auto-negotiation Advertised Capabilities:
-  ^\s*Operational MAU type:
-  ^\s*LLDP-MED capabilities:
-  ^\s*LLDP-MED Device type:
+  ^\s*Auto-negotiation support:\s+
+  ^\s*Auto-negotiation status:\s+
+  ^\s*Auto-negotiation Advertised Capabilities:\s+
+  ^\s*Operational MAU type:\s+
+  ^\s*LLDP-MED capabilities:\s+.+$$
+  ^\s*LLDP-MED Device type:\s+.+$$
+  ^\s*LLDP-MED\s+Network\s+policy -> MedNetworkPolicy
+  ^\s*LLDP-MED\s+Power\s+over\s+Ethernet -> MedPowerOverEthernet
+  ^\s*Management\s+address:\s+
+  ^\s*Hardware\s+revision:
+  ^\s*Firmware\s+revision:
+  ^\s*Software\s+revision:
+  ^\s*Serial\s+number:
+  ^\s*Manufacturer\s+Name:
+  ^\s*Model\s+name:
+  ^\s*Asset\s+ID:
   ^\s*$$ -> Record EOF
   ^.*$$ -> Error
+
+
+MedNetworkPolicy
+  ^\s*Application\s+type:\s+.*$$
+  ^\s*Flags:\s+\S+\s*$$
+  ^\s*VLAN\s+ID:\s+\d+\s*$$
+  ^\s*Layer\s+2\s+priority:\s+\d+\s*$$
+  ^\s*DSCP:\s+\d+\s*$$ -> Block
+
+MedPowerOverEthernet
+  ^\s*Device\s+Type:\s+.+$$
+  ^\s*Power\s+Source:\s+.+$$
+  ^\s*Power\s+priority:\s+.+$$
+  ^\s*Power\s+value:\s+.+$$ -> Block

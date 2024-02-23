@@ -1,8 +1,8 @@
 import json
-from .unifi import UnifiBaseDriver as _Base, LLDPCliMixin, UnifiConfigMixin
+from .unifi import UnifiBaseDriver as _Base, LLDPCliMixin, NoEnableMixin, UnifiConfigMixin
 
 
-class UnifiAccessPointDriver(LLDPCliMixin, UnifiConfigMixin, _Base):
+class UnifiAccessPointDriver(NoEnableMixin, LLDPCliMixin, UnifiConfigMixin, _Base):
     def get_primary_ipv4(self):
         return self.get_interface_ipv4("br0")
 
