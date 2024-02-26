@@ -17,12 +17,16 @@ class UnifiSecurityGatewayDriver(LLDPCliMixin, _Base):
     def get_lldp_neighbors_detail(self, interface: str = "") -> Dict[str, List[models.LLDPNeighborDetailDict]]:
         neighbors: Dict[str, List[models.LLDPNeighborDetailDict]] = defaultdict(list)
 
-        output = self.send_command("lldpctl -f json")
-        try:
-            output = json.loads(output)
-        except json.JSONDecodeError:
-            # sometimes the output is missing the closing brace...
-            output = json.loads(output + "}")
+        # The lldpctl command on the USG doesn't add a newline at the
+        # end of the json output, therefore we simply append one ourselves.
+        # This ensures the json output can be fully captured by netmiko and
+        # property parsed here
+        output = json.loads(self.send_command("lldpctl -f json && echo"))
+        # try:
+        #     output = json.loads(output)
+        # except json.JSONDecodeError:
+        #     # sometimes the output is missing the closing brace...
+        #     output = json.loads(output + "}")
         for details in output.get("lldp", {}).get("interface", []):
             neighbors[details["name"]].append({
                 "parent_interface": "",

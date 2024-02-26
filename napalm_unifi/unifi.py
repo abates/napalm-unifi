@@ -35,6 +35,12 @@ def map_textfsm_template(command: str, platform = "ubiquiti_unifi"):
     return None
 
 
+def correct_lldp_interface_names(old_prefix: str, new_prefix: str, neighbors: Dict[str, List]):
+    for interface in list(neighbors.keys()):
+        if interface.startswith(old_prefix):
+            neighbors[f"{new_prefix}{interface.removeprefix(old_prefix).strip()}"] = neighbors.pop(interface)
+    return neighbors
+
 class UnifiBaseDriver(NetworkDriver):
     """Napalm driver for Unifi."""
 
@@ -281,22 +287,16 @@ class UnifiSwitchBase(NoEnableMixin, UnifiConfigMixin, UnifiBaseDriver):
     def _get_lldp_neighbors_detail(self, interface) -> Dict:
         raise NotImplementedError("_get_lldp_neighbors_detail may be implemented by sub-classes")
 
-    def get_lldp_neighbors_detail(self, interface: str = "", interface_name_prefix=None) -> Dict[str, List[models.LLDPNeighborDetailDict]]:
+    def get_lldp_neighbors_detail(self, interface: str = "") -> Dict[str, List[models.LLDPNeighborDetailDict]]:
         neighbors: Dict[str, List[models.LLDPNeighborDetailDict]] = defaultdict(list)
         interfaces = []
         if interface == "":
             interfaces = self.get_lldp_neighbors().keys()
         else:
             interfaces = [interface]
-
         for interface in interfaces:
-            if interface_name_prefix:
-                interface = f"{interface_name_prefix}{interface}"
-
             output = self._get_lldp_neighbors_detail(interface)
             for neighbor in output:
-                if interface_name_prefix:
-                    interface = interface.removeprefix(interface_name_prefix)
                 neighbors[interface].append({
                     "parent_interface": "",
                     "remote_chassis_id": neighbor["neighbor_chassis_id"],
@@ -312,13 +312,11 @@ class UnifiSwitchBase(NoEnableMixin, UnifiConfigMixin, UnifiBaseDriver):
     def _get_lldp_neighbors(self) -> Dict:
         raise NotImplementedError("_get_lldp_neighbors may be implemented by sub-classes")
 
-    def get_lldp_neighbors(self, interface_name_prefix=None) -> Dict[str, List[models.LLDPNeighborDict]]:
+    def get_lldp_neighbors(self) -> Dict[str, List[models.LLDPNeighborDict]]:
         neighbors: Dict[str, List[models.LLDPNeighborDict]] = defaultdict(list)
         output = self._get_lldp_neighbors()
         for neighbor in output:
             interface_name = neighbor["local_port"]
-            if interface_name_prefix:
-                interface_name = interface_name.removeprefix(interface_name_prefix)
 
             neighbors[interface_name].append(
                 {
@@ -341,6 +339,7 @@ class UnifiSwitchBase(NoEnableMixin, UnifiConfigMixin, UnifiBaseDriver):
             enabled = True
             if details.get("status") == "disabled":
                 enabled = False
+            port = f"Port {port}"
             ports[port] = {
                 "description": details["name"],
                 "is_enabled": enabled,
