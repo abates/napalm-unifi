@@ -8,6 +8,20 @@ from .unifi import LLDPCliMixin, UnifiBaseDriver as _Base
 from napalm.base import models
 
 class UnifiSecurityGatewayDriver(LLDPCliMixin, _Base):
+    def open(self):
+        super().open()
+        print("Disable Paging")
+        self.send_command("terminal length 0")
+
+    def get_config(self, retrieve: str = "all", full: bool = False, sanitized: bool = False) -> models.ConfigDict:
+        if retrieve == "all" or retrieve == "running":
+            self._config["running"] = self.send_command("show configuration")
+
+        if retrieve == "all" or retrieve == "startup":
+            self._config["startup"] = self.send_command("show configuration saved")
+
+        return self._config
+
     def get_primary_ipv4(self):
         for interface_name, interface in self.get_interfaces().items():
             if interface["alias"] == "LAN":
