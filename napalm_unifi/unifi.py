@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Union
 
 from napalm.base import NetworkDriver, models
 from napalm.base.netmiko_helpers import netmiko_args
-from netmiko.exceptions import ReadTimeout
 
 import ntc_templates
 from textfsm import clitable
@@ -118,8 +117,7 @@ class UnifiBaseDriver(NetworkDriver):
         return self.send_command(f"cat {file_path}")
 
     def send_command(self, command: str):
-        textfsm_template = map_textfsm_template(command, platform="linux")
-
+        textfsm_template = map_textfsm_template(command, platform="ubiquiti_unifi")
         return self._netmiko_device.send_command(
             command,
             use_textfsm=(textfsm_template is not None),
