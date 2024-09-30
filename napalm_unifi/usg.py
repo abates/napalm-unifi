@@ -10,7 +10,6 @@ from napalm.base import models
 class UnifiSecurityGatewayDriver(LLDPCliMixin, _Base):
     def open(self):
         super().open()
-        print("Disable Paging")
         self.send_command("terminal length 0")
 
     def get_config(self, retrieve: str = "all", full: bool = False, sanitized: bool = False) -> models.ConfigDict:

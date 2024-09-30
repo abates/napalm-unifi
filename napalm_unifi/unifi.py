@@ -122,6 +122,7 @@ class UnifiBaseDriver(NetworkDriver):
             command,
             use_textfsm=(textfsm_template is not None),
             textfsm_template=textfsm_template,
+            read_timeout=60,
         )
 
     def is_physical_interface(self, interface_name) -> bool:

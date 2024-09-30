@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "napalm-unifi"
-version = "0.3.0"
+version = "0.3.1"
 description = ""
 authors = ["Andrew Bates <andrew.bates@networktocode.com>"]
 license = "Apache 2.0"
