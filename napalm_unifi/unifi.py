@@ -9,7 +9,7 @@ import json
 from os import path
 from typing import Any, Dict, List, Union
 
-from napalm.base import NetworkDriver, models
+from napalm.base.base import NetworkDriver, models
 from napalm.base.netmiko_helpers import netmiko_args
 
 import ntc_templates
