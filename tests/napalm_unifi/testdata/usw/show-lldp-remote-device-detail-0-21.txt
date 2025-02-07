@@ -1,0 +1,21 @@
+
+LLDP Remote Device Detail
+
+Local Interface: 0/21
+
+
+Remote Identifier: 8
+Chassis ID Subtype: MAC Address
+Chassis ID: eb:6d:4e:4a:19:a1
+Port ID Subtype: Interface Name
+Port ID: eth1
+System Name: usg1
+System Description: UBNT UniFi-Gateway-3 running on v4.4.57.5578372.230112.0823
+Port Description: LAN
+System Capabilities Supported: bridge, WLAN access point, router
+System Capabilities Enabled: router
+Management Address:
+    Type: IPv4
+    Address: 10.0.4.1
+Time to Live: 114 seconds
+

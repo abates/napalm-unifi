@@ -1,0 +1,8 @@
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN mode DEFAULT group default 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: sit0: <NOARP> mtu 1480 qdisc noop state DOWN mode DEFAULT group default 
+    link/sit 0.0.0.0 brd 0.0.0.0
+3: ip6tnl0: <NOARP> mtu 1452 qdisc noop state DOWN mode DEFAULT group default 
+    link/tunnel6 :: brd ::
+4: eth0: <BROADCAST,MULTICAST,ALLMULTI,PROMISC,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN mode DEFAULT group default qlen 500
+    link/ether 64:f8:46:45:57:f0 brd ff:ff:ff:ff:ff:ff

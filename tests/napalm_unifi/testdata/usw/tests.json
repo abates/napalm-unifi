@@ -1,0 +1,74 @@
+{
+  "driver": "UnifiSwitchDriver",
+  "prompt": "usw1-US.7.1.26# ",
+  "command_table": {
+    "mca-dump": "!load_file:mca-dump.txt",
+    "ip address show": "!load_file:ip-address-show.txt",
+    "ip link show": "!load_file:ip-link-show.txt",
+    "show lldp remote-device all": "!load_file:show-lldp-remote-device-all.txt",
+    "show lldp remote-device detail 0/21": "!load_file:show-lldp-remote-device-detail-0-21.txt",
+    "cli": "",
+    "enable": "",
+    "terminal length 0": "",
+    "exit": "",
+    "readlink -f /sys/class/net/lo": "/sys/devices/virtual/net/lo",
+    "readlink -f /sys/class/net/eth0": "/sys/devices/virtual/net/eth0",
+    "cat /tmp/running.cfg": "!load_file:cat-running-cfg.txt"
+  },
+  "tests": [
+    {
+      "method": "get_interfaces",
+      "expected": {
+        "lo": {"alias": "", "description": "lo", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": "00:00:00:00:00:00", "mtu": "16436", "speed": -1.0, "type": "virtual"},
+        "eth0": {"alias": "", "description": "eth0", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": "64:f8:46:45:57:f0", "mtu": "1500", "speed": -1.0, "type": "virtual"},
+        "Port 1": {"description": "1", "is_enabled": false, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 2": {"description": "2", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 3": {"description": "3", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 4": {"description": "4", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 5": {"description": "5", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 6": {"description": "6", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 7": {"description": "7", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 8": {"description": "8", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 9": {"description": "9", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 10": {"description": "10", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 11": {"description": "11", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 100.0, "type": "ether", "alias": ""},
+        "Port 12": {"description": "12", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 13": {"description": "13", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 14": {"description": "14", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 100.0, "type": "ether", "alias": ""},
+        "Port 15": {"description": "15", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 16": {"description": "16", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 17": {"description": "17", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 18": {"description": "18", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 19": {"description": "19", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 20": {"description": "20", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 21": {"description": "21", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 22": {"description": "22", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 23": {"description": "23", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 24": {"description": "24", "is_enabled": true, "is_up": true, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 1000.0, "type": "ether", "alias": ""},
+        "Port 25": {"description": "SFP 1", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""},
+        "Port 26": {"description": "SFP 2", "is_enabled": true, "is_up": false, "last_flapped": -1.0, "mac_address": null, "mtu": 1500, "speed": 0.0, "type": "ether", "alias": ""}
+      }
+    },
+    {
+      "method": "get_lldp_neighbors",
+      "expected": {
+        "Port 21": [{"hostname": "usg1", "port": "eth1"}]
+      }
+    },
+    {
+      "method": "get_lldp_neighbors_detail",
+      "expected": {
+        "Port 21": [{
+          "parent_interface": "",
+          "remote_chassis_id": "eb:6d:4e:4a:19:a1",
+          "remote_port": "eth1",
+          "remote_port_description": "LAN",
+          "remote_system_name": "usg1",
+          "remote_system_description": "UBNT UniFi-Gateway-3 running on v4.4.57.5578372.230112.0823",
+          "remote_system_capab": "bridge, WLAN access point, router",
+          "remote_system_enable_capab": "router"
+        }]
+      }
+    }
+  ]
+}

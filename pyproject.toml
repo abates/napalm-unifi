@@ -9,7 +9,7 @@ packages = [{include = "napalm_unifi"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-napalm = "^4.1.0"
+napalm = "^5.0"
 
 
 [tool.poetry.group.dev.dependencies]

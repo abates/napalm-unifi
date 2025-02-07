@@ -4,6 +4,7 @@ Napalm driver for Unifi.
 Read https://napalm.readthedocs.io for more information.
 """
 
+from abc import ABC
 from collections import defaultdict
 import json
 from os import path
@@ -40,7 +41,7 @@ def correct_lldp_interface_names(old_prefix: str, new_prefix: str, neighbors: Di
             neighbors[f"{new_prefix}{interface.removeprefix(old_prefix).strip()}"] = neighbors.pop(interface)
     return neighbors
 
-class UnifiBaseDriver(NetworkDriver):
+class UnifiBaseDriver(NetworkDriver, ABC):
     """Napalm driver for Unifi."""
 
     def __init__(self, hostname, username, password, timeout=60, optional_args=None):
